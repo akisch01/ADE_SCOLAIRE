@@ -17,20 +17,17 @@
         </header>
 
         <main>
+            
             <div class="calendrier">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Heure</th>
                 <table class="timetable">
                     <thead>
                         <tr>  
                             <th class="hour-header">Horaires</th>
-                            <th>Lundi</th>
-                            <th>Mardi</th>
-                            <th>Mercredi</th>
-                            <th>Jeudi</th>
-                            <th>Vendredi</th>
+                            <th>Lundi <span id="lundi">erreur</span></th>
+                            <th>Mardi <span id="mardi">erreur</span></th>
+                            <th>Mercredi <span id="mercredi">erreur</span></th>
+                            <th>Jeudi <span id="jeudi">erreur</span></th>
+                            <th>Vendredi <span id="vendredi">erreur</span></th>
                         </tr>
                     </thead>
                     <tbody id="calendar-body">
@@ -119,4 +116,44 @@
 
         <script src="script.js"></script>
     </body>
+    <script>
+        const listeMois = ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"];
+        let date = new Date (Date.now())
+        let chevauchement = false;
+        
+
+        const semaine = [];
+        const jourActuel = date.getDay();
+        
+        const jourAvantLundi = jourActuel === 0 ? 6 : jourActuel - 1;
+        
+        
+        date.setDate(date.getDate() - jourAvantLundi);
+  
+        for (let i = 0; i < 5; i++) {
+            semaine.push(new Date(date));
+            date.setDate(date.getDate() + 1); // Passer au jour suivant
+        }
+        
+        
+        let lundi = semaine[0].getDate() + "/" +  String(semaine[0].getMonth() + 1).padStart(2, '0');
+        let mardi = semaine[1].getDate() + "/" + String(semaine[1].getMonth() + 1).padStart(2, '0');
+        let mercredi = semaine[2].getDate() + "/" + String(semaine[2].getMonth() + 1).padStart(2, '0');
+        let jeudi = semaine[3].getDate() + "/" + String(semaine[3].getMonth() + 1).padStart(2, '0');
+        let vendredi = semaine[4].getDate() + "/" + String(semaine[4].getMonth() + 1).padStart(2, '0');
+
+
+        let mois = listeMois[date.getMonth()];
+
+        document.getElementById("lundi").innerHTML = lundi; 
+        document.getElementById("mardi").innerHTML = mardi;
+        document.getElementById("mercredi").innerHTML = mercredi;
+        document.getElementById("jeudi").innerHTML = jeudi;
+        document.getElementById("vendredi").innerHTML = vendredi;
+
+
+
+
+        // document.getElementById("date semaine").innerHTML = semaine;
+    </script>
 </html>
