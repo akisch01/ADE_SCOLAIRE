@@ -59,6 +59,39 @@ main {
     overflow: hidden;
 }
 
+.calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 18px;
+    background-color: #f7fafc;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.calendar-title {
+    font-weight: 700;
+    color: #2d3748;
+    font-size: 1.05rem;
+}
+
+.nav-week-btn {
+    background-color: #ffffff;
+    color: #2b6cb0;
+    border: 1px solid #cbd5e0;
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.nav-week-btn:hover {
+    background-color: #2b6cb0;
+    color: #ffffff;
+    border-color: #2b6cb0;
+}
+
 .timetable {
     width: 100%;
     border-collapse: collapse;
