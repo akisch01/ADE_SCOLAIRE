@@ -217,6 +217,17 @@ function afficherEmploiDuTemps() {
     });
 }
 
+const boutonsNiveau = document.querySelectorAll('.level-button');
+
+boutonsNiveau.forEach(bouton => {
+    bouton.addEventListener('click', () => {
+        boutonsNiveau.forEach(element => {
+            element.classList.remove('active');
+        });
+
+        bouton.classList.add('active');
+    });
+});s
 // Initialisation au chargement de la page
 document.addEventListener('DOMContentLoaded', async () => {
     await initialiserBaseDeDonnees();
