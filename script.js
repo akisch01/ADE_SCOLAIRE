@@ -1,5 +1,6 @@
 /**
  * Gestion de la base de données des cours (LocalStorage + cours.json)
+ * Support du filtrage par niveau (CP1, CP2, ING1, ING2, ING3)
  * Projet : ADE Scolaire - EILCO
  */
 
@@ -28,25 +29,528 @@ const MAPPING_JOURS = {
     "Vendredi": 5
 };
 
+// Données par défaut pour tous les niveaux
+const COURS_DEFAUT = [
+    // --- CP1 ---
+    {
+        id: 101,
+        matiere: "Mathématiques : Algèbre",
+        enseignant: "M. Legrand",
+        salle: "Salle CP1",
+        jour: "Lundi",
+        heureDebut: "08h00",
+        heureFin: "10h00",
+        type: "CM",
+        niveau: "CP1",
+        groupe: "CP1-A",
+        couleur: "#2b6cb0"
+    },
+    {
+        id: 102,
+        matiere: "Physique : Mécanique",
+        enseignant: "Mme. Renard",
+        salle: "Amphi B",
+        jour: "Lundi",
+        heureDebut: "10h15",
+        heureFin: "12h15",
+        type: "TD",
+        niveau: "CP1",
+        groupe: "CP1-A",
+        couleur: "#319795"
+    },
+    {
+        id: 103,
+        matiere: "Initiation Algorithmique",
+        enseignant: "M. Robert",
+        salle: "Labo Info 1",
+        jour: "Mardi",
+        heureDebut: "08h00",
+        heureFin: "10h00",
+        type: "TP",
+        niveau: "CP1",
+        groupe: "CP1-A",
+        couleur: "#dd6b20"
+    },
+    {
+        id: 104,
+        matiere: "Chimie Générale",
+        enseignant: "Mme. Simon",
+        salle: "Labo Chimie",
+        jour: "Mercredi",
+        heureDebut: "10h15",
+        heureFin: "12h15",
+        type: "TP",
+        niveau: "CP1",
+        groupe: "CP1-A",
+        couleur: "#d69e2e"
+    },
+    {
+        id: 105,
+        matiere: "Anglais LV1",
+        enseignant: "Mme. Smith",
+        salle: "Salle C102",
+        jour: "Jeudi",
+        heureDebut: "13h15",
+        heureFin: "15h15",
+        type: "TD",
+        niveau: "CP1",
+        groupe: "CP1-A",
+        couleur: "#805ad5"
+    },
+    {
+        id: 106,
+        matiere: "Électronique Fondamentale",
+        enseignant: "M. Blanc",
+        salle: "Labo Elec 1",
+        jour: "Vendredi",
+        heureDebut: "08h00",
+        heureFin: "10h00",
+        type: "CM",
+        niveau: "CP1",
+        groupe: "CP1-A",
+        couleur: "#3182ce"
+    },
+
+    // --- CP2 ---
+    {
+        id: 201,
+        matiere: "Mathématiques : Analyse",
+        enseignant: "M. Legrand",
+        salle: "Amphi A",
+        jour: "Lundi",
+        heureDebut: "08h00",
+        heureFin: "10h00",
+        type: "CM",
+        niveau: "CP2",
+        groupe: "CP2-A",
+        couleur: "#2b6cb0"
+    },
+    {
+        id: 202,
+        matiere: "Programmation C++",
+        enseignant: "M. Leclerc",
+        salle: "Labo Info 2",
+        jour: "Lundi",
+        heureDebut: "10h15",
+        heureFin: "12h15",
+        type: "TP",
+        niveau: "CP2",
+        groupe: "CP2-A",
+        couleur: "#dd6b20"
+    },
+    {
+        id: 203,
+        matiere: "Électromagnétisme",
+        enseignant: "Mme. Renard",
+        salle: "Amphi B",
+        jour: "Mardi",
+        heureDebut: "10h15",
+        heureFin: "12h15",
+        type: "CM",
+        niveau: "CP2",
+        groupe: "CP2-A",
+        couleur: "#319795"
+    },
+    {
+        id: 204,
+        matiere: "Thermodynamique",
+        enseignant: "M. Blanc",
+        salle: "Salle B102",
+        jour: "Mercredi",
+        heureDebut: "08h00",
+        heureFin: "10h00",
+        type: "TD",
+        niveau: "CP2",
+        groupe: "CP2-A",
+        couleur: "#d69e2e"
+    },
+    {
+        id: 205,
+        matiere: "Projet de Conception",
+        enseignant: "Mme. Simon",
+        salle: "Salle Projet",
+        jour: "Jeudi",
+        heureDebut: "13h15",
+        heureFin: "15h15",
+        type: "Projet",
+        niveau: "CP2",
+        groupe: "CP2-A",
+        couleur: "#38a169"
+    },
+    {
+        id: 206,
+        matiere: "Optique Ondulatoire",
+        enseignant: "M. Roux",
+        salle: "Labo Physique",
+        jour: "Vendredi",
+        heureDebut: "10h15",
+        heureFin: "12h15",
+        type: "TP",
+        niveau: "CP2",
+        groupe: "CP2-A",
+        couleur: "#805ad5"
+    },
+
+    // --- ING1 ---
+    {
+        id: 301,
+        matiere: "POO & Java Avancé",
+        enseignant: "M. Robert",
+        salle: "Labo Info 1",
+        jour: "Lundi",
+        heureDebut: "08h00",
+        heureFin: "10h00",
+        type: "TP",
+        niveau: "ING1",
+        groupe: "ING1-S5",
+        couleur: "#dd6b20"
+    },
+    {
+        id: 302,
+        matiere: "Systèmes & Linux",
+        enseignant: "M. Thomas",
+        salle: "Salle B201",
+        jour: "Lundi",
+        heureDebut: "10h15",
+        heureFin: "12h15",
+        type: "TD",
+        niveau: "ING1",
+        groupe: "ING1-S5",
+        couleur: "#4a5568"
+    },
+    {
+        id: 303,
+        matiere: "Architecture Ordinateurs",
+        enseignant: "Mme. Martin",
+        salle: "Amphi A",
+        jour: "Mardi",
+        heureDebut: "08h00",
+        heureFin: "10h00",
+        type: "CM",
+        niveau: "ING1",
+        groupe: "ING1-S5",
+        couleur: "#319795"
+    },
+    {
+        id: 304,
+        matiere: "Bases de Données SQL",
+        enseignant: "M. Leclerc",
+        salle: "Labo Info 3",
+        jour: "Mercredi",
+        heureDebut: "10h15",
+        heureFin: "12h15",
+        type: "TP",
+        niveau: "ING1",
+        groupe: "ING1-S5",
+        couleur: "#d69e2e"
+    },
+    {
+        id: 305,
+        matiere: "Génie Logiciel",
+        enseignant: "M. Dupont",
+        salle: "Salle B204",
+        jour: "Jeudi",
+        heureDebut: "08h00",
+        heureFin: "10h00",
+        type: "CM",
+        niveau: "ING1",
+        groupe: "ING1-S5",
+        couleur: "#2b6cb0"
+    },
+    {
+        id: 306,
+        matiere: "Réseaux Locaux",
+        enseignant: "Mme. Moreau",
+        salle: "Labo Réseau",
+        jour: "Vendredi",
+        heureDebut: "13h15",
+        heureFin: "15h15",
+        type: "TP",
+        niveau: "ING1",
+        groupe: "ING1-S5",
+        couleur: "#3182ce"
+    },
+
+    // --- ING2 ---
+    {
+        id: 1,
+        matiere: "Méthodologies Agiles",
+        enseignant: "M. Dupont",
+        salle: "Salle B204",
+        jour: "Lundi",
+        heureDebut: "08h00",
+        heureFin: "10h00",
+        type: "TD",
+        niveau: "ING2",
+        groupe: "ING2-S7",
+        couleur: "#2b6cb0"
+    },
+    {
+        id: 2,
+        matiere: "Architecture Logicielle",
+        enseignant: "Mme. Martin",
+        salle: "Amphi A",
+        jour: "Lundi",
+        heureDebut: "10h15",
+        heureFin: "12h15",
+        type: "CM",
+        niveau: "ING2",
+        groupe: "ING2-S7",
+        couleur: "#319795"
+    },
+    {
+        id: 3,
+        matiere: "Base de Données Avancées",
+        enseignant: "M. Robert",
+        salle: "Labo Info 3",
+        jour: "Lundi",
+        heureDebut: "13h15",
+        heureFin: "15h15",
+        type: "TP",
+        niveau: "ING2",
+        groupe: "ING2-S7",
+        couleur: "#d69e2e"
+    },
+    {
+        id: 4,
+        matiere: "Anglais Professionnel",
+        enseignant: "Mme. Smith",
+        salle: "Salle C101",
+        jour: "Mardi",
+        heureDebut: "08h00",
+        heureFin: "10h00",
+        type: "TD",
+        niveau: "ING2",
+        groupe: "ING2-S7",
+        couleur: "#805ad5"
+    },
+    {
+        id: 5,
+        matiere: "Développement Web Fullstack",
+        enseignant: "M. Leclerc",
+        salle: "Labo Info 1",
+        jour: "Mardi",
+        heureDebut: "10h15",
+        heureFin: "12h15",
+        type: "TP",
+        niveau: "ING2",
+        groupe: "ING2-S7",
+        couleur: "#dd6b20"
+    },
+    {
+        id: 6,
+        matiere: "Sécurité Informatique",
+        enseignant: "M. Bernard",
+        salle: "Amphi B",
+        jour: "Mardi",
+        heureDebut: "13h15",
+        heureFin: "15h15",
+        type: "CM",
+        niveau: "ING2",
+        groupe: "ING2-S7",
+        couleur: "#e53e3e"
+    },
+    {
+        id: 7,
+        matiere: "Réseaux & Protocoles",
+        enseignant: "Mme. Moreau",
+        salle: "Salle B105",
+        jour: "Mercredi",
+        heureDebut: "08h00",
+        heureFin: "10h00",
+        type: "CM",
+        niveau: "ING2",
+        groupe: "ING2-S7",
+        couleur: "#3182ce"
+    },
+    {
+        id: 8,
+        matiere: "Projet Agile & Sprint",
+        enseignant: "M. Dupont",
+        salle: "Salle Projet",
+        jour: "Mercredi",
+        heureDebut: "10h15",
+        heureFin: "12h15",
+        type: "Projet",
+        niveau: "ING2",
+        groupe: "ING2-S7",
+        couleur: "#38a169"
+    },
+    {
+        id: 9,
+        matiere: "DevOps & CI/CD",
+        enseignant: "M. Thomas",
+        salle: "Labo Info 2",
+        jour: "Jeudi",
+        heureDebut: "08h00",
+        heureFin: "10h00",
+        type: "TP",
+        niveau: "ING2",
+        groupe: "ING2-S7",
+        couleur: "#4a5568"
+    },
+    {
+        id: 10,
+        matiere: "Gestion de Projet & Économie",
+        enseignant: "Mme. Petit",
+        salle: "Salle A201",
+        jour: "Jeudi",
+        heureDebut: "10h15",
+        heureFin: "12h15",
+        type: "TD",
+        niveau: "ING2",
+        groupe: "ING2-S7",
+        couleur: "#9f7aea"
+    },
+    {
+        id: 11,
+        matiere: "Intelligence Artificielle",
+        enseignant: "M. Roux",
+        salle: "Amphi A",
+        jour: "Jeudi",
+        heureDebut: "13h15",
+        heureFin: "15h15",
+        type: "CM",
+        niveau: "ING2",
+        groupe: "ING2-S7",
+        couleur: "#d53f8c"
+    },
+    {
+        id: 12,
+        matiere: "Atelier Méthodes Agiles",
+        enseignant: "M. Dupont",
+        salle: "Salle B204",
+        jour: "Vendredi",
+        heureDebut: "08h00",
+        heureFin: "10h00",
+        type: "TD",
+        niveau: "ING2",
+        groupe: "ING2-S7",
+        couleur: "#2b6cb0"
+    },
+    {
+        id: 13,
+        matiere: "Conférences & Retours d'expérience",
+        enseignant: "Invités",
+        salle: "Grand Amphi",
+        jour: "Vendredi",
+        heureDebut: "10h15",
+        heureFin: "12h15",
+        type: "CM",
+        niveau: "ING2",
+        groupe: "ING2-S7",
+        couleur: "#4fd1c5"
+    },
+
+    // --- ING3 ---
+    {
+        id: 501,
+        matiere: "Cloud & Kubernetes",
+        enseignant: "M. Thomas",
+        salle: "Labo Cloud",
+        jour: "Lundi",
+        heureDebut: "08h00",
+        heureFin: "10h00",
+        type: "TP",
+        niveau: "ING3",
+        groupe: "ING3-S9",
+        couleur: "#4a5568"
+    },
+    {
+        id: 502,
+        matiere: "Big Data & Machine Learning",
+        enseignant: "M. Roux",
+        salle: "Amphi A",
+        jour: "Lundi",
+        heureDebut: "10h15",
+        heureFin: "12h15",
+        type: "CM",
+        niveau: "ING3",
+        groupe: "ING3-S9",
+        couleur: "#d53f8c"
+    },
+    {
+        id: 503,
+        matiere: "Management de l'Innovation",
+        enseignant: "Mme. Petit",
+        salle: "Salle A202",
+        jour: "Mardi",
+        heureDebut: "10h15",
+        heureFin: "12h15",
+        type: "CM",
+        niveau: "ING3",
+        groupe: "ING3-S9",
+        couleur: "#9f7aea"
+    },
+    {
+        id: 504,
+        matiere: "Cybersécurité Avancée",
+        enseignant: "M. Bernard",
+        salle: "Labo Sécu",
+        jour: "Mercredi",
+        heureDebut: "08h00",
+        heureFin: "10h00",
+        type: "TP",
+        niveau: "ING3",
+        groupe: "ING3-S9",
+        couleur: "#e53e3e"
+    },
+    {
+        id: 505,
+        matiere: "Projet de Fin d'Études (PFE)",
+        enseignant: "Tuteurs",
+        salle: "Salle Projet",
+        jour: "Jeudi",
+        heureDebut: "08h00",
+        heureFin: "12h15",
+        type: "Projet",
+        niveau: "ING3",
+        groupe: "ING3-S9",
+        couleur: "#38a169"
+    },
+    {
+        id: 506,
+        matiere: "Droit & Éthique du Numérique",
+        enseignant: "Mme. Smith",
+        salle: "Amphi B",
+        jour: "Vendredi",
+        heureDebut: "10h15",
+        heureFin: "12h15",
+        type: "CM",
+        niveau: "ING3",
+        groupe: "ING3-S9",
+        couleur: "#805ad5"
+    }
+];
+
+let niveauActuel = "ING2";
+
 /**
  * Initialise la base de données dans le LocalStorage
  */
 async function initialiserBaseDeDonnees() {
-    const dataExistante = localStorage.getItem(STORAGE_KEY);
-    
-    if (!dataExistante) {
-        try {
-            const reponse = await fetch('cours.json');
-            if (!reponse.ok) throw new Error("Erreur réseau");
+    let donneesValides = false;
+    try {
+        const reponse = await fetch('cours.json');
+        if (reponse.ok) {
             const cours = await reponse.json();
-            sauvegarderTousLesCours(cours);
-            console.log("BD initialisée depuis cours.json :", cours);
-        } catch (error) {
-            console.warn("Chargement direct du JSON impossible (ex: protocole file://), utilisation des données de secours.");
-            sauvegarderTousLesCours(COURS_DEFAUT);
+            if (Array.isArray(cours) && cours.length >= 20) {
+                sauvegarderTousLesCours(cours);
+                donneesValides = true;
+                console.log("BD initialisée depuis cours.json :", cours);
+            }
         }
-    } else {
-        console.log("BD chargée depuis le LocalStorage.");
+    } catch (error) {
+        console.warn("Chargement direct du JSON impossible (ex: protocole file://), utilisation des données de secours.");
+    }
+
+    // Si pas de données valides ou si le LocalStorage contient l'ancien jeu de données (sans les autres niveaux)
+    if (!donneesValides) {
+        const data = localStorage.getItem(STORAGE_KEY);
+        if (!data || JSON.parse(data).length < 20 || !JSON.parse(data).some(c => c.niveau === 'CP1')) {
+            sauvegarderTousLesCours(COURS_DEFAUT);
+            console.log("BD synchronisée avec COURS_DEFAUT (tous les niveaux).");
+        }
     }
 }
 
@@ -56,7 +560,7 @@ async function initialiserBaseDeDonnees() {
  */
 function getTousLesCours() {
     const data = localStorage.getItem(STORAGE_KEY);
-    return data ? JSON.parse(data) : [];
+    return data ? JSON.parse(data) : COURS_DEFAUT;
 }
 
 /**
@@ -86,7 +590,7 @@ function ajouterCours(nouveauCours) {
     nouveauCours.id = nouveauCours.id || Date.now();
     cours.push(nouveauCours);
     sauvegarderTousLesCours(cours);
-    afficherEmploiDuTemps();
+    afficherEmploiDuTemps(niveauActuel);
     return nouveauCours;
 }
 
@@ -101,7 +605,7 @@ function modifierCours(id, donneesModifiees) {
     if (index !== -1) {
         cours[index] = { ...cours[index], ...donneesModifiees };
         sauvegarderTousLesCours(cours);
-        afficherEmploiDuTemps();
+        afficherEmploiDuTemps(niveauActuel);
         return cours[index];
     }
     return null;
@@ -115,7 +619,7 @@ function supprimerCours(id) {
     let cours = getTousLesCours();
     cours = cours.filter(c => c.id !== Number(id));
     sauvegarderTousLesCours(cours);
-    afficherEmploiDuTemps();
+    afficherEmploiDuTemps(niveauActuel);
 }
 
 /**
@@ -124,7 +628,7 @@ function supprimerCours(id) {
 function reinitialiserBaseDeDonnees() {
     localStorage.removeItem(STORAGE_KEY);
     sauvegarderTousLesCours(COURS_DEFAUT);
-    afficherEmploiDuTemps();
+    afficherEmploiDuTemps(niveauActuel);
 }
 
 /**
@@ -142,9 +646,12 @@ function calculerRowspan(heureDebut, heureFin) {
 }
 
 /**
- * Remplit les cellules du tableau HTML existant avec les cours du LocalStorage
+ * Remplit les cellules du tableau HTML existant avec les cours filtrés par niveau
+ * @param {string} niveau Niveau sélectionné (CP1, CP2, ING1, ING2, ING3)
  */
-function afficherEmploiDuTemps() {
+function afficherEmploiDuTemps(niveau = niveauActuel) {
+    niveauActuel = niveau;
+
     const rows = document.querySelectorAll('#calendar-body tr');
     if (!rows || rows.length === 0) return;
 
@@ -160,10 +667,19 @@ function afficherEmploiDuTemps() {
         });
     });
 
-    // 2. Récupérer les cours
-    const listeCours = getTousLesCours();
+    // 2. Récupérer et filtrer les cours selon le niveau sélectionné
+    const tousLesCours = getTousLesCours();
+    const listeCours = tousLesCours.filter(c => {
+        if (c.niveau) {
+            return c.niveau.toUpperCase() === niveau.toUpperCase();
+        }
+        if (c.groupe) {
+            return c.groupe.toUpperCase().startsWith(niveau.toUpperCase());
+        }
+        return false;
+    });
 
-    // 3. Remplir chaque cours dans sa case correspondante
+    // 3. Remplir chaque cours filtré dans sa case correspondante
     listeCours.forEach(cours => {
         const jourIndex = MAPPING_JOURS[cours.jour];
         if (!jourIndex) return;
@@ -217,19 +733,34 @@ function afficherEmploiDuTemps() {
     });
 }
 
-const boutonsNiveau = document.querySelectorAll('.level-button');
+/**
+ * Initialisation des événements pour les boutons de choix de niveau (CP1, CP2, ING1, ING2, ING3)
+ */
+function initialiserBoutonsNiveaux() {
+    const boutonsNiveau = document.querySelectorAll('.level-button');
 
-boutonsNiveau.forEach(bouton => {
-    bouton.addEventListener('click', () => {
-        boutonsNiveau.forEach(element => {
-            element.classList.remove('active');
+    boutonsNiveau.forEach(bouton => {
+        bouton.addEventListener('click', () => {
+            boutonsNiveau.forEach(element => {
+                element.classList.remove('active');
+            });
+
+            bouton.classList.add('active');
+            const niveau = bouton.textContent.trim();
+            afficherEmploiDuTemps(niveau);
         });
-
-        bouton.classList.add('active');
     });
-});s
+
+    // Détecter le niveau initialement actif dans le HTML (par défaut ING2)
+    const boutonActif = document.querySelector('.level-button.active');
+    if (boutonActif) {
+        niveauActuel = boutonActif.textContent.trim();
+    }
+}
+
 // Initialisation au chargement de la page
 document.addEventListener('DOMContentLoaded', async () => {
     await initialiserBaseDeDonnees();
-    afficherEmploiDuTemps();
+    initialiserBoutonsNiveaux();
+    afficherEmploiDuTemps(niveauActuel);
 });
