@@ -524,6 +524,44 @@ const COURS_DEFAUT = [
 ];
 
 let niveauActuel = "ING2";
+let lundiActuel = obtenirLundi(new Date());
+
+function obtenirLundi(date) {
+    const lundi = new Date(date);
+    const jour = lundi.getDay();
+    const joursDepuisLundi = jour === 0 ? 6 : jour - 1;
+    lundi.setHours(0, 0, 0, 0);
+    lundi.setDate(lundi.getDate() - joursDepuisLundi);
+    return lundi;
+}
+
+function formaterDate(date) {
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+}
+
+function obtenirDateDuJour(lundi, jourNom) {
+    const indexJour = Object.keys(MAPPING_JOURS).indexOf(jourNom);
+    const date = new Date(lundi);
+    date.setDate(date.getDate() + indexJour);
+    return formaterDate(date);
+}
+
+function mettreAJourDatesSemaine() {
+    Object.keys(MAPPING_JOURS).forEach((jourNom, index) => {
+        const date = new Date(lundiActuel);
+        date.setDate(date.getDate() + index);
+        const element = document.getElementById(jourNom.toLowerCase());
+        if (element) {
+            element.textContent = `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}`;
+        }
+    });
+}
+
+function changerDeSemaine(nombreDeSemaines) {
+    lundiActuel.setDate(lundiActuel.getDate() + nombreDeSemaines * 7);
+    mettreAJourDatesSemaine();
+    afficherEmploiDuTemps(niveauActuel);
+}
 
 /**
  * Initialise la base de données dans le LocalStorage
@@ -671,12 +709,21 @@ function afficherEmploiDuTemps(niveau = niveauActuel) {
     const tousLesCours = getTousLesCours();
     const listeCours = tousLesCours.filter(c => {
         if (c.niveau) {
-            return c.niveau.toUpperCase() === niveau.toUpperCase();
+            if (c.niveau.toUpperCase() !== niveau.toUpperCase()) return false;
+        } else if (c.groupe) {
+            if (!c.groupe.toUpperCase().startsWith(niveau.toUpperCase())) return false;
+        } else {
+            return false;
         }
-        if (c.groupe) {
-            return c.groupe.toUpperCase().startsWith(niveau.toUpperCase());
+
+        const dateCours = obtenirDateDuJour(lundiActuel, c.jour);
+
+        // Les anciennes données sans date restent visibles uniquement cette semaine.
+        if (!c.date) {
+            return formaterDate(lundiActuel) === formaterDate(obtenirLundi(new Date()));
         }
-        return false;
+
+        return c.date === dateCours;
     });
 
     // 3. Remplir chaque cours filtré dans sa case correspondante
@@ -758,9 +805,21 @@ function initialiserBoutonsNiveaux() {
     }
 }
 
+function initialiserNavigationSemaines() {
+    document.getElementById('semaine-suivante')?.addEventListener('click', () => {
+        changerDeSemaine(1);
+    });
+
+    document.getElementById('semaine-precedente')?.addEventListener('click', () => {
+        changerDeSemaine(-1);
+    });
+}
+
 // Initialisation au chargement de la page
 document.addEventListener('DOMContentLoaded', async () => {
     await initialiserBaseDeDonnees();
     initialiserBoutonsNiveaux();
+    initialiserNavigationSemaines();
+    mettreAJourDatesSemaine();
     afficherEmploiDuTemps(niveauActuel);
 });
