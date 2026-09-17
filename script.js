@@ -5,165 +5,28 @@
 
 const STORAGE_KEY = 'ade_cours_db';
 
-// Données par défaut au cas où le chargement fetch('cours.json') échoue ou est exécuté via le protocole file://
-const COURS_DEFAUT = [
-    {
-        id: 1,
-        matiere: "Méthodologies Agiles",
-        enseignant: "M. Dupont",
-        salle: "Salle B204",
-        jour: "Lundi",
-        heureDebut: "08h00",
-        heureFin: "10h00",
-        type: "TD",
-        groupe: "ING2-S7",
-        couleur: "#2b6cb0"
-    },
-    {
-        id: 2,
-        matiere: "Architecture Logicielle",
-        enseignant: "Mme. Martin",
-        salle: "Amphi A",
-        jour: "Lundi",
-        heureDebut: "10h15",
-        heureFin: "12h15",
-        type: "CM",
-        groupe: "ING2-S7",
-        couleur: "#319795"
-    },
-    {
-        id: 3,
-        matiere: "Base de Données Avancées",
-        enseignant: "M. Robert",
-        salle: "Labo Info 3",
-        jour: "Lundi",
-        heureDebut: "13h15",
-        heureFin: "15h15",
-        type: "TP",
-        groupe: "ING2-S7",
-        couleur: "#d69e2e"
-    },
-    {
-        id: 4,
-        matiere: "Anglais Professionnel",
-        enseignant: "Mme. Smith",
-        salle: "Salle C101",
-        jour: "Mardi",
-        heureDebut: "08h00",
-        heureFin: "10h00",
-        type: "TD",
-        groupe: "ING2-S7",
-        couleur: "#805ad5"
-    },
-    {
-        id: 5,
-        matiere: "Développement Web Fullstack",
-        enseignant: "M. Leclerc",
-        salle: "Labo Info 1",
-        jour: "Mardi",
-        heureDebut: "10h15",
-        heureFin: "12h15",
-        type: "TP",
-        groupe: "ING2-S7",
-        couleur: "#dd6b20"
-    },
-    {
-        id: 6,
-        matiere: "Sécurité Informatique",
-        enseignant: "M. Bernard",
-        salle: "Amphi B",
-        jour: "Mardi",
-        heureDebut: "13h15",
-        heureFin: "15h15",
-        type: "CM",
-        groupe: "ING2-S7",
-        couleur: "#e53e3e"
-    },
-    {
-        id: 7,
-        matiere: "Réseaux & Protocoles",
-        enseignant: "Mme. Moreau",
-        salle: "Salle B105",
-        jour: "Mercredi",
-        heureDebut: "08h00",
-        heureFin: "10h00",
-        type: "CM",
-        groupe: "ING2-S7",
-        couleur: "#3182ce"
-    },
-    {
-        id: 8,
-        matiere: "Projet Agile & Sprint",
-        enseignant: "M. Dupont",
-        salle: "Salle Projet",
-        jour: "Mercredi",
-        heureDebut: "10h15",
-        heureFin: "12h15",
-        type: "Projet",
-        groupe: "ING2-S7",
-        couleur: "#38a169"
-    },
-    {
-        id: 9,
-        matiere: "DevOps & CI/CD",
-        enseignant: "M. Thomas",
-        salle: "Labo Info 2",
-        jour: "Jeudi",
-        heureDebut: "08h00",
-        heureFin: "10h00",
-        type: "TP",
-        groupe: "ING2-S7",
-        couleur: "#4a5568"
-    },
-    {
-        id: 10,
-        matiere: "Gestion de Projet",
-        enseignant: "Mme. Petit",
-        salle: "Salle A201",
-        jour: "Jeudi",
-        heureDebut: "10h15",
-        heureFin: "12h15",
-        type: "TD",
-        groupe: "ING2-S7",
-        couleur: "#9f7aea"
-    },
-    {
-        id: 11,
-        matiere: "Intelligence Artificielle",
-        enseignant: "M. Roux",
-        salle: "Amphi A",
-        jour: "Jeudi",
-        heureDebut: "13h15",
-        heureFin: "15h15",
-        type: "CM",
-        groupe: "ING2-S7",
-        couleur: "#d53f8c"
-    },
-    {
-        id: 12,
-        matiere: "Atelier Méthodes Agiles",
-        enseignant: "M. Dupont",
-        salle: "Salle B204",
-        jour: "Vendredi",
-        heureDebut: "08h00",
-        heureFin: "10h00",
-        type: "TD",
-        groupe: "ING2-S7",
-        couleur: "#2b6cb0"
-    },
-    {
-        id: 13,
-        matiere: "Conférences & Retours d'exp",
-        enseignant: "Intervenants",
-        salle: "Grand Amphi",
-        jour: "Vendredi",
-        heureDebut: "10h15",
-        heureFin: "12h15",
-        type: "CM",
-        groupe: "ING2-S7",
-        couleur: "#4fd1c5"
-    }
+// Ordre des créneaux horaires
+const CRENEAUX_ORDRE = [
+    "08h00",
+    "09h00",
+    "10h15",
+    "11h15",
+    "12h15", // Pause
+    "13h15",
+    "14h15",
+    "15h30",
+    "16h30",
+    "17h30"
 ];
+
+// Mapping jour -> index de colonne dans les <tr> (0 = hour-cell, 1 = Lundi, ...)
+const MAPPING_JOURS = {
+    "Lundi": 1,
+    "Mardi": 2,
+    "Mercredi": 3,
+    "Jeudi": 4,
+    "Vendredi": 5
+};
 
 /**
  * Initialise la base de données dans le LocalStorage
@@ -265,61 +128,92 @@ function reinitialiserBaseDeDonnees() {
 }
 
 /**
- * Affiche dynamiquement les cours dans le tableau de l'emploi du temps
+ * Calcule le nombre de créneaux (rowspan) qu'occupe un cours
+ * @param {string} heureDebut 
+ * @param {string} heureFin 
+ * @returns {number} Nombre de créneaux
+ */
+function calculerRowspan(heureDebut, heureFin) {
+    const start = parseInt(heureDebut.replace('h', ''), 10);
+    const end = parseInt(heureFin.replace('h', ''), 10);
+    const dureeHeures = end - start;
+
+    return dureeHeures >= 2 ? 2 : 1;
+}
+
+/**
+ * Remplit les cellules du tableau HTML existant avec les cours du LocalStorage
  */
 function afficherEmploiDuTemps() {
-    const tbody = document.getElementById('calendar-body');
-    if (!tbody) return;
+    const rows = document.querySelectorAll('#calendar-body tr');
+    if (!rows || rows.length === 0) return;
 
-    // Vider les cellules du tableau sauf la colonne des heures
-    const rows = tbody.querySelectorAll('tr');
+    // 1. Réinitialiser toutes les cellules existantes
     rows.forEach(row => {
-        const cells = row.querySelectorAll('td');
-        for (let i = 1; i < cells.length; i++) {
-            cells[i].innerHTML = '';
-        }
+        if (row.classList.contains('pause-row')) return;
+
+        const cells = row.querySelectorAll('td:not(.hour-cell)');
+        cells.forEach(td => {
+            td.innerHTML = '';
+            td.removeAttribute('rowspan');
+            td.style.display = ''; // Réaffiche la case si elle avait été masquée
+        });
     });
 
-    const mappingJours = {
-        "Lundi": 1,
-        "Mardi": 2,
-        "Mercredi": 3,
-        "Jeudi": 4,
-        "Vendredi": 5
-    };
-
+    // 2. Récupérer les cours
     const listeCours = getTousLesCours();
 
-    rows.forEach(row => {
-        const heureCell = row.querySelector('.hour-cell');
-        if (!heureCell) return;
-        const horaireTexte = heureCell.textContent.trim(); // ex: "08h00 - 9h00"
+    // 3. Remplir chaque cours dans sa case correspondante
+    listeCours.forEach(cours => {
+        const jourIndex = MAPPING_JOURS[cours.jour];
+        if (!jourIndex) return;
 
-        listeCours.forEach(cours => {
-            const jourIndex = mappingJours[cours.jour];
-            if (!jourIndex) return;
+        const rowDebut = document.querySelector(`#calendar-body tr[data-heure="${cours.heureDebut}"]`);
+        if (!rowDebut) return;
 
-            // Vérifie si le créneau correspond
-            if (horaireTexte.startsWith(cours.heureDebut)) {
-                const targetCell = row.children[jourIndex];
-                if (targetCell) {
-                    const card = document.createElement('div');
-                    card.className = 'cours-card';
-                    if (cours.couleur) {
-                        card.style.backgroundColor = cours.couleur;
+        const cellDebut = rowDebut.children[jourIndex];
+        if (!cellDebut) return;
+
+        const rowspan = calculerRowspan(cours.heureDebut, cours.heureFin);
+
+        // Si le cours fait 2h ou plus, appliquer le rowspan et masquer la cellule du dessous
+        if (rowspan > 1) {
+            cellDebut.setAttribute('rowspan', rowspan);
+
+            let nextRow = rowDebut.nextElementSibling;
+            for (let r = 1; r < rowspan; r++) {
+                if (nextRow && !nextRow.classList.contains('pause-row')) {
+                    const cellToHide = nextRow.children[jourIndex];
+                    if (cellToHide) {
+                        cellToHide.style.display = 'none';
                     }
-                    card.innerHTML = `
-                        <span class="cours-badge">${cours.type || 'COURS'}</span>
-                        <div class="cours-matiere">${cours.matiere}</div>
-                        <div class="cours-infos">
-                            <span>${cours.salle || ''}</span>
-                            <span>${cours.enseignant || ''}</span>
-                        </div>
-                    `;
-                    targetCell.appendChild(card);
+                    nextRow = nextRow.nextElementSibling;
                 }
             }
-        });
+        }
+
+        // Insérer la carte du cours
+        const card = document.createElement('div');
+        card.className = 'cours-card';
+        if (cours.couleur) {
+            card.style.backgroundColor = cours.couleur;
+        }
+
+        card.innerHTML = `
+            <div>
+                <div class="cours-card-header">
+                    <span class="cours-badge">${cours.type || 'COURS'}</span>
+                    <span class="cours-horaire">${cours.heureDebut} - ${cours.heureFin}</span>
+                </div>
+                <div class="cours-matiere">${cours.matiere}</div>
+            </div>
+            <div class="cours-infos">
+                <span>${cours.salle ? cours.salle : ''}</span>
+                <span>${cours.enseignant ? cours.enseignant : ''}</span>
+            </div>
+        `;
+
+        cellDebut.appendChild(card);
     });
 }
 
