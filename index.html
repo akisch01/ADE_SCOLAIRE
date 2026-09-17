@@ -1,56 +1,75 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
     <head>
         <meta charset="UTF-8" />
         <meta http-equiv="X-UA-Compatible" content="IE=edge" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Document</title>
+        <title>ADE Scolaire - Emploi du temps</title>
         <link rel="stylesheet" href="style.css" />
     </head>
     <body>
-
-          <header>
-            <nav>
-            </nav>
+        <header>
+            <div class="header-content">
+                <div class="logo">EILCO</div>
+                <h1>Emploi du temps</h1>
+                <div class="week-title">Semaine en cours</div>
+            </div>
         </header>
 
-
-
         <main>
-            <div classe="calendrier">
-                <table>
+            <div class="calendrier">
+                <table class="timetable">
                     <thead>
                         <tr>
+                            <th class="hour-header">Horaires</th>
                             <th>Lundi</th>
                             <th>Mardi</th>
                             <th>Mercredi</th>
                             <th>Jeudi</th>
                             <th>Vendredi</th>
-                            <th>Samedi</th>
-                            <th>Dimanche</th>
                         </tr>
                     </thead>
-
                     <tbody id="calendar-body">
-                        
+                        <tr>
+                            <td class="hour-cell">08h00 - 10h00</td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td class="hour-cell">10h15 - 12h15</td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td class="hour-cell">13h15 - 15h15</td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td class="hour-cell">15h30 - 17h30</td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                        </tr>
                     </tbody>
                 </table>
-
             </div>
-
         </main>
 
-
-
-
-
-
-            <footer>
-            
-            </footer>
-
-
-
+        <footer>
+            <p>&copy; ADE Scolaire - EILCO</p>
+        </footer>
 
         <script src="script.js"></script>
     </body>
