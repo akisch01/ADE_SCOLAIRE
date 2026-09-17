@@ -6,6 +6,12 @@ on:
   pull_request:
     branches: [ "main" ]
 
+# Permissions requises pour le déploiement GitHub Pages
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
 jobs:
   # Étape 1 : Vérification de la syntaxe et intégrité des fichiers
   lint-and-test:
