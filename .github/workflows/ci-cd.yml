@@ -1,0 +1,73 @@
+name: CI/CD Pipeline - ADE Scolaire
+
+on:
+  push:
+    branches: [ "main", "noah", "noah2" ]
+  pull_request:
+    branches: [ "main" ]
+
+# Permissions requises pour le déploiement GitHub Pages
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  # Étape 1 : Vérification de la syntaxe et intégrité des fichiers
+  lint-and-test:
+    name: "Vérification Syntaxe & Lint"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Récupérer le code
+        uses: actions/checkout@v4
+
+      - name: Valider la syntaxe JSON de cours.json
+        run: |
+          python3 -m json.tool cours.json > /dev/null
+          echo "Validation de cours.json : SUCCÈS"
+
+      - name: Vérifier la présence des fichiers essentiels
+        run: |
+          test -f index.html || (echo "index.html manquant" && exit 1)
+          test -f style.css || (echo "style.css manquant" && exit 1)
+          test -f script.js || (echo "script.js manquant" && exit 1)
+          echo "Tous les fichiers essentiels sont présents !"
+
+  # Étape 2 : Build et test du conteneur Docker
+  docker-build-test:
+    name: "Build & Test Docker"
+    needs: lint-and-test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Récupérer le code
+        uses: actions/checkout@v4
+
+      - name: Configurer Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build de l'image Docker
+        run: |
+          docker build -t ade-scolaire:test .
+
+      - name: Tester le conteneur en fonctionnement
+        run: |
+          docker run -d -p 8080:80 --name ade-test ade-scolaire:test
+          sleep 4
+          curl --fail http://localhost:8080 || exit 1
+          echo "Le conteneur répond parfaitement sur le port 8080 !"
+
+  # Étape 3 : Déploiement automatique sur GitHub Pages
+  deploy-pages:
+    name: "Déploiement GitHub Pages"
+    if: github.ref == 'refs/heads/main'
+    needs: docker-build-test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Récupérer le code
+        uses: actions/checkout@v4
+
+      - name: Déployer sur GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./
