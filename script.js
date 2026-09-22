@@ -68,6 +68,52 @@ function obtenirDateDuJour(lundi, jourNom) {
 }
 
 /**
+ * Calcule tous les jours fériés français pour une année donnée
+ * @param {number} annee 
+ * @returns {Set<string>} Dates au format "YYYY-MM-DD"
+ */
+function obtenirJoursFeries(annee) {
+    const feries = new Set();
+
+    // Fêtes à dates fixes
+    const fixes = ["01-01", "05-01", "05-08", "07-14", "08-15", "11-01", "11-11", "12-25"];
+    fixes.forEach(f => feries.add(`${annee}-${f}`));
+
+    // Calcul du dimanche de Pâques (algorithme de Meeus)
+    const a = annee % 19;
+    const b = Math.floor(annee / 100);
+    const c = annee % 100;
+    const d = Math.floor(b / 4);
+    const e = b % 4;
+    const f = Math.floor((b + 8) / 25);
+    const g = Math.floor((b - f + 1) / 3);
+    const h = (19 * a + b - d - g + 15) % 30;
+    const i = Math.floor(c / 4);
+    const k = c % 4;
+    const l = (32 + 2 * e + 2 * i - h - k) % 7;
+    const m = Math.floor((a + 11 * h + 22 * l) / 451);
+    const moisPaques = Math.floor((h + l - 7 * m + 114) / 31);
+    const jourPaques = ((h + l - 7 * m + 114) % 31) + 1;
+
+    const paques = new Date(annee, moisPaques - 1, jourPaques);
+
+    // Fêtes mobiles (Lundi de Pâques, Ascension, Pentecôte)
+    const lundiPaques = new Date(paques);
+    lundiPaques.setDate(paques.getDate() + 1);
+    feries.add(formaterDate(lundiPaques));
+
+    const ascension = new Date(paques);
+    ascension.setDate(paques.getDate() + 39);
+    feries.add(formaterDate(ascension));
+
+    const lundiPentecote = new Date(paques);
+    lundiPentecote.setDate(paques.getDate() + 50);
+    feries.add(formaterDate(lundiPentecote));
+
+    return feries;
+}
+
+/**
  * Met à jour l'affichage des dates dans les en-têtes des colonnes
  */
 function mettreAJourDatesSemaine() {
@@ -140,6 +186,7 @@ function getTousLesCours() {
 function sauvegarderTousLesCours(cours) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(cours));
 }
+
 
 /**
  * Récupère un cours par son identifiant unique
@@ -224,11 +271,39 @@ function afficherEmploiDuTemps(niveau = niveauActuel) {
         cells.forEach(td => {
             td.innerHTML = '';
             td.removeAttribute('rowspan');
-            td.style.display = ''; // Réaffiche la case si elle avait été masquée
+            td.style.display = '';
+            td.classList.remove('ferie-cell');
         });
     });
 
-    // 2. Récupérer et filtrer les cours selon le niveau sélectionné
+    // 2. Détection et grisé des jours fériés
+    const anneeActuelle = lundiActuel.getFullYear();
+    const joursFeries = new Set([
+        ...obtenirJoursFeries(anneeActuelle - 1),
+        ...obtenirJoursFeries(anneeActuelle),
+        ...obtenirJoursFeries(anneeActuelle + 1)
+    ]);
+
+    const colonnesFeriees = new Set();
+    Object.keys(MAPPING_JOURS).forEach(jourNom => {
+        const dateStr = obtenirDateDuJour(lundiActuel, jourNom);
+        if (joursFeries.has(dateStr)) {
+            colonnesFeriees.add(MAPPING_JOURS[jourNom]);
+        }
+    });
+
+    // Appliquer le style grisé à toutes les lignes des colonnes fériées
+    rows.forEach(row => {
+        if (row.classList.contains('pause-row')) return;
+        colonnesFeriees.forEach(colIndex => {
+            const cell = row.children[colIndex];
+            if (cell) {
+                cell.classList.add('ferie-cell');
+            }
+        });
+    });
+
+    // 3. Récupérer et filtrer les cours
     const tousLesCours = getTousLesCours();
     const listeCours = tousLesCours.filter(c => {
         if (c.niveau) {
@@ -241,7 +316,9 @@ function afficherEmploiDuTemps(niveau = niveauActuel) {
 
         const dateCours = obtenirDateDuJour(lundiActuel, c.jour);
 
-        // Les cours génériques sans date restent visibles sur la semaine courante
+        // Si le jour est férié, ne pas afficher de cours
+        if (joursFeries.has(dateCours)) return false;
+
         if (!c.date) {
             return formaterDate(lundiActuel) === formaterDate(obtenirLundi(new Date()));
         }
@@ -249,7 +326,7 @@ function afficherEmploiDuTemps(niveau = niveauActuel) {
         return c.date === dateCours;
     });
 
-    // 3. Remplir chaque cours filtré dans sa case correspondante
+    // 4. Insérer chaque cours dans le tableau
     listeCours.forEach(cours => {
         const jourIndex = MAPPING_JOURS[cours.jour];
         if (!jourIndex) return;
@@ -262,7 +339,6 @@ function afficherEmploiDuTemps(niveau = niveauActuel) {
 
         const rowspan = calculerRowspan(cours.heureDebut, cours.heureFin);
 
-        // Si le cours fait 2h ou plus, appliquer le rowspan et masquer la cellule du dessous
         if (rowspan > 1) {
             cellDebut.setAttribute('rowspan', rowspan);
 
@@ -278,7 +354,6 @@ function afficherEmploiDuTemps(niveau = niveauActuel) {
             }
         }
 
-        // Insérer la carte du cours
         const card = document.createElement('div');
         card.className = 'cours-card';
         if (cours.couleur) {
