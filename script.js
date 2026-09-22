@@ -86,9 +86,27 @@ function mettreAJourDatesSemaine() {
  * @param {number} nombreDeSemaines 
  */
 function changerDeSemaine(nombreDeSemaines) {
-    lundiActuel.setDate(lundiActuel.getDate() + nombreDeSemaines * 7);
-    mettreAJourDatesSemaine();
-    afficherEmploiDuTemps(niveauActuel);
+    if (nombreDeSemaines == -2) {
+        lundiActuel = new Date(2026,0,1)
+        lundiActuel = obtenirLundi(lundiActuel);
+        changerDeSemaine(1)
+        mettreAJourDatesSemaine();
+        afficherEmploiDuTemps(niveauActuel); 
+        console.log(lundiActuel.getDate().toString())
+    }
+    else if (nombreDeSemaines == 2 ) {
+        lundiActuel = new Date(2026, 11, 31)
+        lundiActuel = obtenirLundi(lundiActuel);
+        changerDeSemaine(-1)
+        mettreAJourDatesSemaine();
+        afficherEmploiDuTemps(niveauActuel); 
+        console.log(lundiActuel.getDate().toString())
+    }
+    else {
+        lundiActuel.setDate(lundiActuel.getDate() + nombreDeSemaines * 7);
+        mettreAJourDatesSemaine();
+        afficherEmploiDuTemps(niveauActuel);
+    }
 }
 
 /**
@@ -320,6 +338,21 @@ function initialiserNavigationSemaines() {
     document.getElementById('semaine-precedente')?.addEventListener('click', () => {
         changerDeSemaine(-1);
     });
+    document.getElementById('derniere-semaine')?.addEventListener('click', () => {
+        changerDeSemaine(2);
+    });
+
+    document.getElementById('premiere-semaine')?.addEventListener('click', () => {
+        changerDeSemaine(-2);
+    });
+}
+
+function initialiserBoutonSemaineEnCours() {
+    document.getElementById('semaine-encours')?.addEventListener('click', () => {
+        lundiActuel = obtenirLundi(new Date());
+        mettreAJourDatesSemaine();
+        afficherEmploiDuTemps(niveauActuel);
+    });
 }
 
 // Initialisation générale au chargement du DOM
@@ -329,4 +362,5 @@ document.addEventListener('DOMContentLoaded', async () => {
     initialiserNavigationSemaines();
     mettreAJourDatesSemaine();
     afficherEmploiDuTemps(niveauActuel);
+    initialiserBoutonSemaineEnCours();
 });
