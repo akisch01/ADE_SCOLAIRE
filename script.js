@@ -347,6 +347,14 @@ function initialiserNavigationSemaines() {
     });
 }
 
+function initialiserBoutonSemaineEnCours() {
+    document.getElementById('semaine-encours')?.addEventListener('click', () => {
+        lundiActuel = obtenirLundi(new Date());
+        mettreAJourDatesSemaine();
+        afficherEmploiDuTemps(niveauActuel);
+    });
+}
+
 // Initialisation générale au chargement du DOM
 document.addEventListener('DOMContentLoaded', async () => {
     await initialiserBaseDeDonnees();
@@ -354,4 +362,5 @@ document.addEventListener('DOMContentLoaded', async () => {
     initialiserNavigationSemaines();
     mettreAJourDatesSemaine();
     afficherEmploiDuTemps(niveauActuel);
+    initialiserBoutonSemaineEnCours();
 });
