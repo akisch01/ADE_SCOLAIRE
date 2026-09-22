@@ -278,3 +278,20 @@ footer {
 }
 
 
+/* Empêcher le hover d'écraser les jours fériés */
+.timetable tbody tr:hover td:not(.hour-cell):not(.pause-cell):not(.ferie-cell) {
+    background-color: #f7fafc;
+}
+
+/* Style garanti pour les cellules fériées */
+td.ferie-cell {
+    background: repeating-linear-gradient(
+        -45deg,
+        #edf2f7,
+        #edf2f7 10px,
+        #e2e8f0 10px,
+        #e2e8f0 20px
+    ) !important;
+    background-color: #edf2f7 !important;
+    cursor: not-allowed;
+}
