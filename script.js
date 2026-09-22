@@ -68,16 +68,27 @@ function obtenirDateDuJour(lundi, jourNom) {
 }
 
 /**
- * Calcule tous les jours fériés français pour une année donnée
+ * Calcule tous les jours fériés français pour une année donnée (détection 100% automatique)
  * @param {number} annee 
- * @returns {Set<string>} Dates au format "YYYY-MM-DD"
+ * @returns {Map<string, string>} Map avec date au format "YYYY-MM-DD" -> Nom du jour férié
  */
 function obtenirJoursFeries(annee) {
-    const feries = new Set();
+    const feries = new Map();
 
     // Fêtes à dates fixes
-    const fixes = ["01-01", "05-01", "05-08", "07-14", "08-15", "11-01", "11-11", "12-25"];
-    fixes.forEach(f => feries.add(`${annee}-${f}`));
+    const fixes = {
+        "01-01": "Jour de l'An",
+        "05-01": "Fête du Travail",
+        "05-08": "Victoire 1945",
+        "07-14": "Fête Nationale",
+        "08-15": "Assomption",
+        "11-01": "Toussaint",
+        "11-11": "Armistice",
+        "12-25": "Noël"
+    };
+    Object.entries(fixes).forEach(([dateFixe, nom]) => {
+        feries.set(`${annee}-${dateFixe}`, nom);
+    });
 
     // Calcul du dimanche de Pâques (algorithme de Meeus)
     const a = annee % 19;
@@ -100,29 +111,42 @@ function obtenirJoursFeries(annee) {
     // Fêtes mobiles (Lundi de Pâques, Ascension, Pentecôte)
     const lundiPaques = new Date(paques);
     lundiPaques.setDate(paques.getDate() + 1);
-    feries.add(formaterDate(lundiPaques));
+    feries.set(formaterDate(lundiPaques), "Lundi de Pâques");
 
     const ascension = new Date(paques);
     ascension.setDate(paques.getDate() + 39);
-    feries.add(formaterDate(ascension));
+    feries.set(formaterDate(ascension), "Ascension");
 
     const lundiPentecote = new Date(paques);
     lundiPentecote.setDate(paques.getDate() + 50);
-    feries.add(formaterDate(lundiPentecote));
+    feries.set(formaterDate(lundiPentecote), "Lundi de Pentecôte");
 
     return feries;
 }
 
 /**
- * Met à jour l'affichage des dates dans les en-têtes des colonnes
+ * Met à jour l'affichage des dates et des jours fériés dans les en-têtes des colonnes
  */
 function mettreAJourDatesSemaine() {
+    const anneeActuelle = lundiActuel.getFullYear();
+    const joursFeries = new Map([
+        ...obtenirJoursFeries(anneeActuelle - 1),
+        ...obtenirJoursFeries(anneeActuelle),
+        ...obtenirJoursFeries(anneeActuelle + 1)
+    ]);
+
     Object.keys(MAPPING_JOURS).forEach((jourNom, index) => {
         const date = new Date(lundiActuel);
         date.setDate(date.getDate() + index);
+        const dateStr = formaterDate(date);
         const element = document.getElementById(jourNom.toLowerCase());
         if (element) {
-            element.textContent = `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}`;
+            const dateAffichee = `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}`;
+            if (joursFeries.has(dateStr)) {
+                element.innerHTML = `${dateAffichee} <span class="badge-ferie">(${joursFeries.get(dateStr)})</span>`;
+            } else {
+                element.textContent = dateAffichee;
+            }
         }
     });
 }
@@ -276,26 +300,26 @@ function afficherEmploiDuTemps(niveau = niveauActuel) {
         });
     });
 
-    // 2. Détection et grisé des jours fériés
+    // 2. Détection et grisé des jours fériés (automatique)
     const anneeActuelle = lundiActuel.getFullYear();
-    const joursFeries = new Set([
+    const joursFeries = new Map([
         ...obtenirJoursFeries(anneeActuelle - 1),
         ...obtenirJoursFeries(anneeActuelle),
         ...obtenirJoursFeries(anneeActuelle + 1)
     ]);
 
-    const colonnesFeriees = new Set();
+    const colonnesFeriees = new Map();
     Object.keys(MAPPING_JOURS).forEach(jourNom => {
         const dateStr = obtenirDateDuJour(lundiActuel, jourNom);
         if (joursFeries.has(dateStr)) {
-            colonnesFeriees.add(MAPPING_JOURS[jourNom]);
+            colonnesFeriees.set(MAPPING_JOURS[jourNom], joursFeries.get(dateStr));
         }
     });
 
     // Appliquer le style grisé à toutes les lignes des colonnes fériées
-    rows.forEach(row => {
+    rows.forEach((row, rowIdx) => {
         if (row.classList.contains('pause-row')) return;
-        colonnesFeriees.forEach(colIndex => {
+        colonnesFeriees.forEach((nomFerie, colIndex) => {
             const cell = row.children[colIndex];
             if (cell) {
                 cell.classList.add('ferie-cell');

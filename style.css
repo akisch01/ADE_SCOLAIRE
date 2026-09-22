@@ -295,3 +295,17 @@ td.ferie-cell {
     background-color: #edf2f7 !important;
     cursor: not-allowed;
 }
+
+.badge-ferie {
+    display: inline-block;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: #fff;
+    background-color: #e53e3e;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-left: 6px;
+    text-transform: none;
+    letter-spacing: normal;
+    vertical-align: middle;
+}
